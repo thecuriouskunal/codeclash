@@ -1,0 +1,515 @@
+const fs = require('fs');
+
+const questions = [
+  // ================= C++ (1-15) =================
+  {
+    id: 1,
+    lang: 'C++',
+    prompt: 'What is printed to stdout?',
+    code: 'int a = 5;\nint *p = &a;\nint b = (*p)++;\ncout << a << " " << b;',
+    options: ['5 5', '6 5', '6 6', '5 6'],
+    answer: 1
+  },
+  {
+    id: 2,
+    lang: 'C++',
+    prompt: 'What does this output?',
+    code: 'int x = 10, y = 20;\nint &r = x;\nr = y;\ny = 99;\ncout << x << " " << r;',
+    options: ['10 10', '20 20', '99 99', '20 99'],
+    answer: 1
+  },
+  {
+    id: 3,
+    lang: 'C++',
+    prompt: 'What is printed?',
+    code: 'vector<int> v = {1, 2, 3};\nfor (auto x : v) x *= 2;\ncout << v[0] << " " << v[1];',
+    options: ['1 2', '2 4', '2 2', '0 0'],
+    answer: 0
+  },
+  {
+    id: 4,
+    lang: 'C++',
+    prompt: 'What is printed?',
+    code: 'int arr[] = {10, 20, 30};\nint *p = arr;\ncout << *(p + 1) + *p++;',
+    options: ['30', '40', '20', 'Undefined'],
+    answer: 0
+  },
+  {
+    id: 5,
+    lang: 'C++',
+    prompt: 'What is printed when f(arr) is called?',
+    code: 'void f(int a[10]) {\n    cout << (sizeof(a) == sizeof(int*));\n}\nint arr[10]; f(arr);',
+    options: ['1 (true)', '0 (false)', 'Compile error', '10'],
+    answer: 0
+  },
+  {
+    id: 6,
+    lang: 'C++',
+    prompt: 'What is printed?',
+    code: 'int x = 10;\nauto f = [x]() mutable { return ++x; };\nf();\ncout << x << " " << f();',
+    options: ['10 12', '11 12', '12 12', '10 11'],
+    answer: 0
+  },
+  {
+    id: 7,
+    lang: 'C++',
+    prompt: 'What is the value of x?',
+    code: 'int i = 2;\nint x = ++i * 3;\ncout << x << " " << i;',
+    options: ['9 3', '6 3', '9 2', '6 2'],
+    answer: 0
+  },
+  {
+    id: 8,
+    lang: 'C++',
+    prompt: 'What is the behavior of this code?',
+    code: 'int* get() {\n    int n = 42;\n    return &n;\n}\ncout << *get();',
+    options: ['Always 42', 'Undefined behavior', 'Compile error', '0'],
+    answer: 1
+  },
+  {
+    id: 9,
+    lang: 'C++',
+    prompt: 'What does this output?',
+    code: 'const char* a = "code";\nconst char* b = "code";\ncout << (a == b);',
+    options: ['1 (pooled literal)', 'Always 0', 'Compile error', 'Throws exception'],
+    answer: 0
+  },
+  {
+    id: 10,
+    lang: 'C++',
+    prompt: 'What is the result in C++11 and later?',
+    code: 'int a = -7;\nint b = 3;\ncout << (a % b);',
+    options: ['-1', '2', '1', '-2'],
+    answer: 0
+  },
+  {
+    id: 11,
+    lang: 'C++',
+    prompt: 'What will be printed?',
+    code: 'struct Node { int val; Node* next; };\nNode b = {20, nullptr};\nNode a = {10, &b};\ncout << (&a)->next->val;',
+    options: ['10', '20', 'Address', 'Segmentation fault'],
+    answer: 1
+  },
+  {
+    id: 12,
+    lang: 'C++',
+    prompt: 'Which line will fail to compile?',
+    code: 'int val = 5;\nconst int* p1 = &val; // Line A\n*p1 = 10;             // Line B\nint* const p2 = &val; // Line C\n*p2 = 10;             // Line D',
+    options: ['Line B', 'Line D', 'Line A and C', 'None'],
+    answer: 0
+  },
+  {
+    id: 13,
+    lang: 'C++',
+    prompt: 'What does this output in C++17?',
+    code: 'int c = 0;\nauto f = [&]() { return ++c; };\nint a = f();\nint b = f();\ncout << a << " " << b;',
+    options: ['1 2', '1 1', '2 2', '0 1'],
+    answer: 0
+  },
+  {
+    id: 14,
+    lang: 'C++',
+    prompt: 'What is printed?',
+    code: 'int a = 1, b = 2;\n(true ? a : b) = 10;\ncout << a << " " << b;',
+    options: ['10 2', '1 2', 'Compile error', '1 10'],
+    answer: 0
+  },
+  {
+    id: 15,
+    lang: 'C++',
+    prompt: 'What is printed?',
+    code: 'int arr[3] = {10, 20, 30};\ncout << 1[arr] << " " << arr[1];',
+    options: ['Compile error', '20 20', '10 20', '20 10'],
+    answer: 1
+  },
+
+  // ================= Python (16-30) =================
+  {
+    id: 16,
+    lang: 'Python',
+    prompt: 'What is the return value?',
+    code: 'def add(v, lst=[]):\n    lst.append(v)\n    return len(lst)\nadd(1)\nprint(add(2))',
+    options: ['1', '2', '3', 'Error'],
+    answer: 1
+  },
+  {
+    id: 17,
+    lang: 'Python',
+    prompt: 'What does this slice output?',
+    code: 's = "ABCDEF"\nprint(s[::-2])',
+    options: ['FDB', 'ECA', 'FEDCBA', 'BDF'],
+    answer: 0
+  },
+  {
+    id: 18,
+    lang: 'Python',
+    prompt: 'What list is printed?',
+    code: 'funcs = [lambda x: x + i for i in range(3)]\nprint([f(10) for f in funcs])',
+    options: ['[10, 11, 12]', '[11, 12, 13]', '[12, 12, 12]', '[10, 10, 10]'],
+    answer: 2
+  },
+  {
+    id: 19,
+    lang: 'Python',
+    prompt: 'What does this code do?',
+    code: 'x = 10\ndef fn():\n    print(x)\n    x = 20\nfn()',
+    options: ['Prints 10', 'Prints 20', 'UnboundLocalError', 'SyntaxError'],
+    answer: 2
+  },
+  {
+    id: 20,
+    lang: 'Python',
+    prompt: 'What is the result of running this?',
+    code: 't = ([1, 2], 3)\nt[0].append(4)\nprint(t)',
+    options: ['TypeError: tuple immutable', '([1, 2, 4], 3)', '([1, 2], 3, 4)', 'None'],
+    answer: 1
+  },
+  {
+    id: 21,
+    lang: 'Python',
+    prompt: 'What does this output?',
+    code: 'a = 256; b = 256\nc = 300; d = 300\nprint((a is b), (c is d))',
+    options: ['True True', 'True False (usually)', 'False False', 'Error'],
+    answer: 1
+  },
+  {
+    id: 22,
+    lang: 'Python',
+    prompt: 'What is the output?',
+    code: 'd = {}\nd[1] = "A"\nd[1.0] = "B"\nd[True] = "C"\nprint(len(d), d[1])',
+    options: ['3 A', '3 C', '1 C', '1 A'],
+    answer: 2
+  },
+  {
+    id: 23,
+    lang: 'Python',
+    prompt: 'What is printed?',
+    code: 'a = [1, 2]\nb = a\nb = b + [3]\nprint(a)',
+    options: ['[1, 2]', '[1, 2, 3]', 'None', 'Error'],
+    answer: 0
+  },
+  {
+    id: 24,
+    lang: 'Python',
+    prompt: 'What does this print?',
+    code: 'm = [[0] * 2] * 2\nm[0][0] = 7\nprint(m[1][0])',
+    options: ['0', '7', 'IndexError', 'None'],
+    answer: 1
+  },
+  {
+    id: 25,
+    lang: 'Python',
+    prompt: 'What is printed?',
+    code: 'items = ["a", "b"]\nfor i, val in enumerate(items, 5):\n    print(i, end=" ")\n    break',
+    options: ['0', '1', '5', 'a'],
+    answer: 2
+  },
+  {
+    id: 26,
+    lang: 'Python',
+    prompt: 'What is printed?',
+    code: 'for i in range(2):\n    if i == 5:\n        break\nelse:\n    print("DONE")',
+    options: ['DONE', 'Nothing', '5', 'Error'],
+    answer: 0
+  },
+  {
+    id: 27,
+    lang: 'Python',
+    prompt: 'What is the value of len(s)?',
+    code: 's = " " * 5\ns = s.strip()\nprint(len(s))',
+    options: ['5', '0', '1', 'None'],
+    answer: 1
+  },
+  {
+    id: 28,
+    lang: 'Python',
+    prompt: 'What does this output?',
+    code: 'st = {0, False, 1, True}\nprint(len(st))',
+    options: ['4', '3', '2', '1'],
+    answer: 2
+  },
+  {
+    id: 29,
+    lang: 'Python',
+    prompt: 'What is printed?',
+    code: 'a = []\nb = [1]\nprint(a or b)',
+    options: ['[]', '[1]', 'True', 'False'],
+    answer: 1
+  },
+  {
+    id: 30,
+    lang: 'Python',
+    prompt: 'What does this print?',
+    code: 'd = {"k": None}\nprint(d.get("k", 99))\nprint(d.get("x", 99))',
+    options: ['None 99', '99 99', 'None None', 'KeyError'],
+    answer: 0
+  },
+
+  // ================= JavaScript (31-45) =================
+  {
+    id: 31,
+    lang: 'JavaScript',
+    prompt: 'What is the result of [] + {} in JS?',
+    code: 'const res = [] + {};\nconsole.log(res);',
+    options: ['"[object Object]"', '"[object Array]"', 'NaN', 'TypeError'],
+    answer: 0
+  },
+  {
+    id: 32,
+    lang: 'JavaScript',
+    prompt: 'What does this evaluate to?',
+    code: 'console.log(null == undefined);\nconsole.log(null === undefined);',
+    options: ['true false', 'true true', 'false false', 'false true'],
+    answer: 0
+  },
+  {
+    id: 33,
+    lang: 'JavaScript',
+    prompt: 'What is logged by this loop?',
+    code: 'for (var i = 0; i < 3; i++) {\n  setTimeout(() => console.log(i), 0);\n}',
+    options: ['0 1 2', '3 3 3', '2 2 2', 'undefined'],
+    answer: 1
+  },
+  {
+    id: 34,
+    lang: 'JavaScript',
+    prompt: 'What order are numbers logged?',
+    code: 'console.log(1);\nsetTimeout(() => console.log(2), 0);\nPromise.resolve().then(() => console.log(3));\nconsole.log(4);',
+    options: ['1, 4, 3, 2', '1, 2, 3, 4', '1, 4, 2, 3', '1, 3, 4, 2'],
+    answer: 0
+  },
+  {
+    id: 35,
+    lang: 'JavaScript',
+    prompt: 'What does this output?',
+    code: 'console.log(typeof NaN);\nconsole.log(NaN === NaN);',
+    options: ['"number" false', '"nan" true', '"number" true', '"undefined" false'],
+    answer: 0
+  },
+  {
+    id: 36,
+    lang: 'JavaScript',
+    prompt: 'What does ["1", "2", "3"].map(parseInt) return?',
+    code: 'const res = ["1", "2", "3"].map(parseInt);\nconsole.log(res);',
+    options: ['[1, 2, 3]', '[1, NaN, NaN]', '[1, 2, NaN]', '[NaN, NaN, NaN]'],
+    answer: 1
+  },
+  {
+    id: 37,
+    lang: 'JavaScript',
+    prompt: 'What is the result of sorting numbers by default?',
+    code: 'const nums = [10, 5, 20, 1];\nnums.sort();\nconsole.log(nums);',
+    options: ['[1, 5, 10, 20]', '[1, 10, 20, 5]', '[20, 10, 5, 1]', '[10, 5, 20, 1]'],
+    answer: 1
+  },
+  {
+    id: 38,
+    lang: 'JavaScript',
+    prompt: 'What is logged?',
+    code: 'const obj = {\n  val: 42,\n  getVal: () => this.val\n};\nconsole.log(obj.getVal());',
+    options: ['42', 'undefined', 'TypeError', 'null'],
+    answer: 1
+  },
+  {
+    id: 39,
+    lang: 'JavaScript',
+    prompt: 'What is the value of a and b?',
+    code: 'const { a = 1, b = 2 } = { a: null, b: undefined };\nconsole.log(a, b);',
+    options: ['null 2', '1 2', 'null undefined', '1 undefined'],
+    answer: 0
+  },
+  {
+    id: 40,
+    lang: 'JavaScript',
+    prompt: 'What is typeof null in JavaScript?',
+    code: 'console.log(typeof null);\nconsole.log(typeof undefined);',
+    options: ['"object" "undefined"', '"null" "undefined"', '"object" "null"', '"undefined" "undefined"'],
+    answer: 0
+  },
+  {
+    id: 41,
+    lang: 'JavaScript',
+    prompt: 'What happens when length is set to 0?',
+    code: 'const arr = [1, 2, 3];\narr.length = 0;\nconsole.log(arr[0], arr.length);',
+    options: ['undefined 0', '1 0', 'TypeError: read-only', '1 3'],
+    answer: 0
+  },
+  {
+    id: 42,
+    lang: 'JavaScript',
+    prompt: 'What does this code output?',
+    code: 'const a = [{ x: 1 }];\nconst b = [...a];\nb[0].x = 99;\nconsole.log(a[0].x);',
+    options: ['1', '99', 'undefined', 'TypeError'],
+    answer: 1
+  },
+  {
+    id: 43,
+    lang: 'JavaScript',
+    prompt: 'What is the result of running this?',
+    code: 'console.log(x);\nvar x = 10;',
+    options: ['undefined', '10', 'ReferenceError', 'null'],
+    answer: 0
+  },
+  {
+    id: 44,
+    lang: 'JavaScript',
+    prompt: 'What does 0.1 + 0.2 === 0.3 evaluate to in JS?',
+    code: 'console.log(0.1 + 0.2 === 0.3);',
+    options: ['false', 'true', 'NaN', 'TypeError'],
+    answer: 0
+  },
+  {
+    id: 45,
+    lang: 'JavaScript',
+    prompt: 'What does this output?',
+    code: 'console.log(+true, !"false");',
+    options: ['1 false', '1 true', 'true false', 'NaN false'],
+    answer: 0
+  },
+
+  // ================= DSA & Complexity (46-60) =================
+  {
+    id: 46,
+    lang: 'DSA & Complexity',
+    prompt: 'What is the tightest time complexity?',
+    code: 'int count = 0;\nfor (int i = 1; i <= n; i *= 2) {\n    for (int j = 0; j < i; j++) count++;\n}',
+    options: ['O(log n)', 'O(n)', 'O(n log n)', 'O(n^2)'],
+    answer: 1
+  },
+  {
+    id: 47,
+    lang: 'DSA & Complexity',
+    prompt: 'Time complexity of naive recursive Fibonacci?',
+    code: 'def fib(n):\n    if n <= 1: return n\n    return fib(n - 1) + fib(n - 2)',
+    options: ['O(n)', 'O(n log n)', 'O(2^n)', 'O(n^2)'],
+    answer: 2
+  },
+  {
+    id: 48,
+    lang: 'DSA & Complexity',
+    prompt: 'Time complexity of standard Binary Search on sorted array?',
+    code: 'while (low <= high) {\n    int mid = low + (high - low) / 2;\n    if (arr[mid] == target) return mid;\n    if (arr[mid] < target) low = mid + 1;\n    else high = mid - 1;\n}',
+    options: ['O(1)', 'O(log n)', 'O(n)', 'O(n log n)'],
+    answer: 1
+  },
+  {
+    id: 49,
+    lang: 'DSA & Complexity',
+    prompt: 'Worst-case time complexity of Merge Sort?',
+    code: '// MergeSort divides in half and merges linearly\nT(n) = 2T(n/2) + O(n)',
+    options: ['O(n)', 'O(n log n)', 'O(n^2)', 'O(log n)'],
+    answer: 1
+  },
+  {
+    id: 50,
+    lang: 'DSA & Complexity',
+    prompt: 'Worst-case time complexity of standard QuickSort?',
+    code: '// When array is already sorted and pivot is always last element:\nT(n) = T(n - 1) + O(n)',
+    options: ['O(n log n)', 'O(n^2)', 'O(n)', 'O(2^n)'],
+    answer: 1
+  },
+  {
+    id: 51,
+    lang: 'DSA & Complexity',
+    prompt: 'Time complexity to build a binary heap from array of n elements?',
+    code: 'void buildHeap(int arr[], int n) {\n    for (int i = n / 2 - 1; i >= 0; i--)\n        heapify(arr, n, i);\n}',
+    options: ['O(n log n)', 'O(n)', 'O(log n)', 'O(n^2)'],
+    answer: 1
+  },
+  {
+    id: 52,
+    lang: 'DSA & Complexity',
+    prompt: 'Height of a complete binary tree with n nodes?',
+    code: '// Maximum number of levels in a complete binary tree\nh = floor(log2(n))',
+    options: ['O(log n)', 'O(n)', 'O(n log n)', 'O(1)'],
+    answer: 0
+  },
+  {
+    id: 53,
+    lang: 'DSA & Complexity',
+    prompt: 'Worst-case search time complexity in an unbalanced BST?',
+    code: '// Insert sorted values: 1, 2, 3, 4, 5\n// Tree degenerates into a linked list',
+    options: ['O(log n)', 'O(1)', 'O(n)', 'O(n log n)'],
+    answer: 2
+  },
+  {
+    id: 54,
+    lang: 'DSA & Complexity',
+    prompt: 'What does In-Order traversal of a valid BST produce?',
+    code: 'void inOrder(Node* root) {\n    if (!root) return;\n    inOrder(root->left);\n    print(root->val);\n    inOrder(root->right);\n}',
+    options: ['Sorted values (ascending)', 'Reverse sorted values', 'Level by level order', 'Arbitrary order'],
+    answer: 0
+  },
+  {
+    id: 55,
+    lang: 'DSA & Complexity',
+    prompt: 'Evaluate this postfix expression: "4 2 / 3 +"',
+    code: 'stack<int> s;\n// Push 4, Push 2\n// Operation "/": 4 / 2 = 2, Push 2\n// Push 3, Operation "+": 2 + 3',
+    options: ['5', '3.5', '2', '6'],
+    answer: 0
+  },
+  {
+    id: 56,
+    lang: 'DSA & Complexity',
+    prompt: 'Number of elements in a circular queue buffer?',
+    code: 'int size(int front, int rear, int cap) {\n    return (rear - front + cap) % cap;\n}',
+    options: ['(rear - front + cap) % cap', 'rear - front', '(rear + front) % cap', 'cap - rear + front'],
+    answer: 0
+  },
+  {
+    id: 57,
+    lang: 'DSA & Complexity',
+    prompt: 'How many edges are in any valid tree with V vertices?',
+    code: '// A connected acyclic graph with V vertices\n// How many edges E does it have?',
+    options: ['V', 'V - 1', 'V + 1', '2V'],
+    answer: 1
+  },
+  {
+    id: 58,
+    lang: 'DSA & Complexity',
+    prompt: 'Solution to recurrence T(n) = 2T(n/2) + O(n)?',
+    code: '// By Master Theorem Case 2:\n// a = 2, b = 2, f(n) = n\n// log_b(a) = log_2(2) = 1',
+    options: ['O(n)', 'O(n log n)', 'O(n^2)', 'O(log n)'],
+    answer: 1
+  },
+  {
+    id: 59,
+    lang: 'DSA & Complexity',
+    prompt: 'Time complexity of naive n x n matrix multiplication?',
+    code: 'for (int i = 0; i < n; i++)\n  for (int j = 0; j < n; j++)\n    for (int k = 0; k < n; k++)\n      C[i][j] += A[i][k] * B[k][j];',
+    options: ['O(n^2)', 'O(n^3)', 'O(n log n)', 'O(2^n)'],
+    answer: 1
+  },
+  {
+    id: 60,
+    lang: 'DSA & Complexity',
+    prompt: 'Worst-case auxiliary stack space of DFS on balanced binary tree of n nodes?',
+    code: 'void dfs(Node* root) {\n    if (!root) return;\n    dfs(root->left);\n    dfs(root->right);\n}',
+    options: ['O(log n)', 'O(n)', 'O(1)', 'O(n^2)'],
+    answer: 0
+  }
+];
+
+// Verify constraints:
+if (questions.length !== 60) {
+  throw new Error('Expected 60 questions, got ' + questions.length);
+}
+
+const langCounts = {};
+questions.forEach((q, idx) => {
+  if (q.id !== idx + 1) throw new Error('Invalid ID for question index ' + idx);
+  if (!q.options || q.options.length !== 4) throw new Error('Question ' + q.id + ' does not have 4 options');
+  if (typeof q.answer !== 'number' || q.answer < 0 || q.answer > 3) throw new Error('Invalid answer index for question ' + q.id);
+  
+  const lines = q.code.split('\n');
+  if (lines.length > 7) throw new Error('Question ' + q.id + ' exceeds 7 lines of code (' + lines.length + ' lines)');
+  if (lines.length < 1) throw new Error('Question ' + q.id + ' has empty code');
+  
+  langCounts[q.lang] = (langCounts[q.lang] || 0) + 1;
+});
+
+console.log('Language distribution:');
+console.log(JSON.stringify(langCounts, null, 2));
+
+fs.writeFileSync('src/data/questions.json', JSON.stringify(questions, null, 2), 'utf8');
+console.log('SUCCESS: Written 60 questions to src/data/questions.json!');
